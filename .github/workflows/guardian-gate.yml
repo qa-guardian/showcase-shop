@@ -28,13 +28,16 @@ jobs:
     name: Run Guardian flows at PR head
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # `secrets` can't be referenced in a step `if:`, so expose presence via env.
+    env:
+      HAS_QAGUARDIAN_KEY: ${{ secrets.QAGUARDIAN_API_KEY != '' }}
     steps:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Run Guardian flows
-        if: ${{ secrets.QAGUARDIAN_API_KEY != '' }}
+        if: env.HAS_QAGUARDIAN_KEY == 'true'
         env:
           QAGUARDIAN_API_KEY: ${{ secrets.QAGUARDIAN_API_KEY }}
         run: |
@@ -42,7 +45,7 @@ jobs:
             --ref "${{ github.event.pull_request.head.sha }}"
 
       - name: Skip (QAGUARDIAN_API_KEY not configured)
-        if: ${{ secrets.QAGUARDIAN_API_KEY == '' }}
+        if: env.HAS_QAGUARDIAN_KEY != 'true'
         run: |
           echo "QAGUARDIAN_API_KEY secret is not set on this repository — skipping the Guardian release gate."
           echo "Add it under Settings > Secrets and variables > Actions to enable it."
