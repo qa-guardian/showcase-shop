@@ -1,0 +1,48 @@
+# QA Guardian release gate.
+#
+# Runs the Acme Orders Playwright suite (e2e/guardian) against QA
+# Guardian's infrastructure for every pull request, at the PR head commit,
+# and posts a commit status named "Guardian release gate" on that commit.
+# Mark that status as a required check on the default branch so a PR can't
+# merge until every flow passes.
+#
+# Setup (one time): add the repository secret QAGUARDIAN_API_KEY — the key
+# from this tenant's environment (Flows -> environment -> Variables in the
+# QA Guardian app). Until that secret is set, this workflow no-ops instead
+# of failing, so forks and first clones stay green.
+#
+# Note: this workflow needs network access from the GitHub-hosted runner to
+# QA Guardian's API — it does not reach a local/private QA Guardian stack.
+name: Guardian release gate
+
+on:
+  pull_request:
+    branches: ['**']
+
+concurrency:
+  group: guardian-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  guardian:
+    name: Run Guardian flows at PR head
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Guardian flows
+        if: ${{ secrets.QAGUARDIAN_API_KEY != '' }}
+        env:
+          QAGUARDIAN_API_KEY: ${{ secrets.QAGUARDIAN_API_KEY }}
+        run: |
+          npx --yes qaguardian@latest --all \
+            --ref "${{ github.event.pull_request.head.sha }}"
+
+      - name: Skip (QAGUARDIAN_API_KEY not configured)
+        if: ${{ secrets.QAGUARDIAN_API_KEY == '' }}
+        run: |
+          echo "QAGUARDIAN_API_KEY secret is not set on this repository — skipping the Guardian release gate."
+          echo "Add it under Settings > Secrets and variables > Actions to enable it."
