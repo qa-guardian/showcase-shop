@@ -3,6 +3,15 @@
 A tiny shop tested by QA Guardian. Every pull request against this repo is
 checked by the QA Guardian release gate before it can merge.
 
+## What to look at
+
+- **A pull request the gate blocked:** [#5](https://github.com/qa-guardian/showcase-shop/pull/5) changes the cart subtotal so it ignores quantity. The "Guardian release gate" check went red and the pull request was never merged.
+- **The same change with the fix:** [#8](https://github.com/qa-guardian/showcase-shop/pull/8) passed the gate and was merged.
+- **The tests:** five Playwright specs in [`e2e/guardian/specs`](e2e/guardian/specs), and the gate workflow in [`.github/workflows/guardian-gate.yml`](.github/workflows/guardian-gate.yml).
+- **The running shop:** <https://qa-guardian.github.io/showcase-shop/>
+
+Pull requests titled "Demo recording retake" are repeats of #8 made while recording a demo video.
+
 [![playwright-score](https://img.shields.io/npm/v/@qaguardian/playwright-score?label=playwright-score)](https://www.npmjs.com/package/@qaguardian/playwright-score)
 
 Acme Orders is a small, honest, login-free sample storefront. It's not a
